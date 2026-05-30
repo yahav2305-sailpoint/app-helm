@@ -1,0 +1,26 @@
+name: Prod
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+
+  build-push-helm-chart:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      packages: write
+      pages: write
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Release helm chart
+        uses: stefanprodan/helm-gh-pages@0ad2bb377311d61ac04ad9eb6f252fb68e207260 # v1.7.0
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          linting: off
+          chart_version: ${{ github.ref_name }}
