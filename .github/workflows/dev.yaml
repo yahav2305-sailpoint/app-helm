@@ -1,0 +1,13 @@
+name: Dev
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+
+jobs:
+
+  run-tests:
+    uses: ./.github/workflows/_tests.yaml
+    permissions:
+      contents: read
