@@ -1,0 +1,7 @@
+apiVersion: v2
+appVersion: "v1.0.0"
+description: A Helm chart for deploying an app
+kubeVersion: ">=1.35.0-0"
+name: app-helm
+type: application
+version: 0.1.0
