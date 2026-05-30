@@ -1,88 +1,121 @@
 # app-helm
 
-## Testing the helm chart locally
+Helm chart for deploying **Linker** to Kubernetes. The chart is published as a Helm repository via GitHub Pages and consumed by Argo CD.
 
-1. Install Kind on host:
+Chart repository URL: [https://yahav2305-sailpoint.github.io/app-helm](https://yahav2305-sailpoint.github.io/app-helm)
 
-    ```sh
-    brew install kind
-    ```
+## Prerequisites
 
-1. Start up a Kind cluster:
+- [kind](https://kind.sigs.k8s.io/) (local cluster)
+- [Helm](https://helm.sh/) v3
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
 
-    ```sh
-    kind create cluster --config chart-testing/kind-config.yaml
-    ```
+## Testing the chart locally
 
-1. Install the helm chart on the cluster:
+```sh
+# Create a local Kind cluster
+kind create cluster --config chart-testing/kind-config.yaml
 
-    ```sh
-    helm install app ./charts/app --values <your-values-file>
-    ```
+# Install the chart (default values)
+helm install app ./charts/app
 
-1. Once you are done, delete the Kind cluster:
+# (Optional) install with a custom values file
+helm install app ./charts/app --values my-values.yaml
 
-    ```sh
-    kind delete cluster --name app-testing-cluster
-    ```
+# Clean up
+kind delete cluster --name app-testing-cluster
+```
 
-## Deploying the chart in a production Kind cluster
+## Deploying with Argo CD (local Kind cluster)
 
-1. Install Kind on host:
+This is the recommended end-to-end setup that mirrors production.
 
-    ```sh
-    brew install kind
-    ```
-
-1. Start up a Kind cluster:
+1. Create the cluster
 
     ```sh
     kind create cluster --config chart-testing/kind-config.yaml
     ```
 
-1. Install ArgoCD on the Kind cluster:
+1. Install Argo CD
 
     ```sh
-    helm install argocd oci://ghcr.io/argoproj/argo-helm/argo-cd --namespace argocd --create-namespace --wait
+    helm install argocd oci://ghcr.io/argoproj/argo-helm/argo-cd \
+    --namespace argocd --create-namespace --wait
     ```
 
-1. Install the app chart through GitOps:
+1. Apply the Argo CD Application manifest
 
     ```sh
     kubectl apply -f chart-testing/app.yaml
     ```
 
-1. Get the admin password:
+    This creates an Argo CD `Application` that sources the Helm chart from the published chart repository and the production values from [yahav2305-sailpoint/gitops](https://github.com/yahav2305-sailpoint/gitops). Argo CD will automatically sync and keep the cluster in the desired state.
+
+1. Access the Argo CD UI
 
     ```sh
-    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+    # Get the initial admin password
+    kubectl -n argocd get secret argocd-initial-admin-secret \
+    -o jsonpath="{.data.password}" | base64 -d
+
+    # Port-forward
+    kubectl port-forward -n argocd svc/argocd-server 8080:443
     ```
 
-1. Connect to the ArgoCD UI:
+    Open [http://localhost:8080](http://localhost:8080) — username `admin`, password from the step above (omit the trailing `%`).
 
-    ```sh
-    kubectl port-forward -n argocd svc/argocd-server -n argocd 8080:443
-    ```
-
-    Then go to [http://localhost:8080](http://localhost:8080) and use the username `admin` and the password from the previous step (without the % at the end).
-
-    Now you can make sure that everything is working correctly.
-
-1. Connect to the app:
+1. Access the app
 
     ```sh
     kubectl port-forward services/app-helm 8081:80
     ```
 
-    Now you can interact with the app at [http://localhost:8081](http://localhost:8081).
+    Then try:
 
-1. Once you are done, delete the Kind cluster:
+    ```sh
+    curl -s -X POST http://localhost:8081/shorten \
+    -H 'Content-Type: application/json' \
+    -d '{"url": "https://example.com"}' | jq
+
+    curl http://localhost:8081/health
+    curl http://localhost:8081/stats
+    ```
+
+1. Clean up
 
     ```sh
     kind delete cluster --name app-testing-cluster
     ```
 
-## Creating a new version
+## Key chart values
 
-In order to create a new version of the helm chart, make the required changes (whether in the main branch or by merging feature branches to main) and then create a new release with a tag that has a higher semver than the previous release.\
-New versions will autoamtically be created for new docker images.
+| Value | Default | Description |
+| --- | --- | --- |
+| `replicaCount` | `3` | Number of pod replicas |
+| `image.repository` | `ghcr.io/yahav2305-sailpoint/app` | Container image |
+| `image.tag` | `""` (uses `appVersion`) | Image tag override |
+| `env.baseUrl` | `http://localhost:8080` | Value of the `BASE_URL` env var inside the pod |
+| `ingress.enabled` | `false` | Enable standard Kubernetes Ingress |
+| `httpRoute.enabled` | `false` | Enable Gateway API HTTPRoute |
+| `autoscaling.enabled` | `false` | Enable HorizontalPodAutoscaler |
+| `resources` | `{}` | CPU/memory requests and limits |
+
+See [charts/app/values.yaml](charts/app/values.yaml) for the full reference.
+
+## CI pipeline
+
+| Trigger | Workflow | What happens |
+| --- | --- | --- |
+| PR to `main` | `pull-request.yaml` | Helm lint → installs chart in an ephemeral Kind cluster |
+| Git tag pushed | `prod.yaml` | Packages and publishes the chart to GitHub Pages |
+
+Chart versions are created automatically when [app](https://github.com/yahav2305-sailpoint/app) tags a new release. The `appVersion` in `Chart.yaml` is bumped by the app repo's CI.
+
+## Creating a manual chart release
+
+Normally chart releases are automated by the app repo's CI. To release manually:
+
+```sh
+git tag v0.2.0
+git push origin v0.2.0
+```
