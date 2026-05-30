@@ -16,9 +16,9 @@
 
 1. Install the helm chart on the cluster:
 
-  ```sh
-  helm install app ./charts/app --values <your-values-file>
-  ```
+    ```sh
+    helm install app ./charts/app --values <your-values-file>
+    ```
 
 1. Once you are done, delete the Kind cluster:
 
