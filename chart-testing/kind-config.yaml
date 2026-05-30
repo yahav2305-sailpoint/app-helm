@@ -5,9 +5,6 @@ name: app-testing-cluster
 nodes:
 # the control plane node config
 - role: control-plane
-  extraPortMappings:
-    - containerPort: 8080
-      hostPort: 8080
 # the three workers
 - role: worker
 - role: worker
