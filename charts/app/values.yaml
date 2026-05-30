@@ -154,6 +154,9 @@ volumeMounts: []
   #   mountPath: "/etc/foo"
   #   readOnly: true
 
+env:
+  baseUrl: "http://localhost:8080"
+
 nodeSelector: {}
 
 tolerations: []
