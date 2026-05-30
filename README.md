@@ -81,3 +81,8 @@
     ```sh
     kind delete cluster --name app-testing-cluster
     ```
+
+## Creating a new version
+
+In order to create a new version of the helm chart, make the required changes (whether in the main branch or by merging feature branches to main) and then create a new release with a tag that has a higher semver than the previous release.\
+New versions will autoamtically be created for new docker images.
