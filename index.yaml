@@ -3,6 +3,17 @@ entries:
   app-helm:
   - apiVersion: v2
     appVersion: v1.0.2
+    created: "2026-05-30T15:41:10.515846747Z"
+    description: A Helm chart for deploying an app
+    digest: e35bad9a8d0e31975a56c4e054347e8666bc03e72e03061af6e4bcb914fb6966
+    kubeVersion: '>=1.35.0-0'
+    name: app-helm
+    type: application
+    urls:
+    - https://yahav2305-sailpoint.github.io/app-helm/app-helm-v1.2.0.tgz
+    version: v1.2.0
+  - apiVersion: v2
+    appVersion: v1.0.2
     created: "2026-05-30T14:40:18.442671929Z"
     description: A Helm chart for deploying an app
     digest: 9d4ec4ae77acb9779b8f813536bd582fa61692bfcfc7bd69588c9d8cdf6fe587
@@ -23,4 +34,4 @@ entries:
     urls:
     - https://yahav2305-sailpoint.github.io/app-helm/app-helm-v1.0.0.tgz
     version: v1.0.0
-generated: "2026-05-30T14:40:18.442016857Z"
+generated: "2026-05-30T15:41:10.514908163Z"
