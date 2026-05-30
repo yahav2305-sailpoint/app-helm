@@ -71,7 +71,7 @@
 1. Connect to the app:
 
     ```sh
-    kubectl port-forward services/app-app-helm 8081:80
+    kubectl port-forward services/app-helm 8081:80
     ```
 
     Now you can interact with the app at [http://localhost:8081](http://localhost:8081).
